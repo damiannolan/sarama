@@ -5,6 +5,8 @@ import (
 	"hash/fnv"
 	"math/rand"
 	"time"
+
+	murmurV2 "github.com/aviddiviner/go-murmur"
 )
 
 // Partitioner is anything that, given a Kafka message and a number of partitions indexed [0...numPartitions-1],
@@ -126,6 +128,16 @@ type hashPartitioner struct {
 	random       Partitioner
 	hasher       hash.Hash32
 	referenceAbs bool
+}
+
+// NewMurmurV2HashPartitioner creates a a Partitioner using the Murmur V2 Hash algorithm which aligns
+// with the JVM Partitioner
+func NewMurmurV2HashPartitioner(topic string) Partitioner {
+	p := new(hashPartitioner)
+	p.random = NewRandomPartitioner(topic)
+	p.hasher = murmurV2.New32(0x9747b28c)
+	p.referenceAbs = false
+	return p
 }
 
 // NewCustomHashPartitioner is a wrapper around NewHashPartitioner, allowing the use of custom hasher.
